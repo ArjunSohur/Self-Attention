@@ -43,4 +43,4 @@ if __name__ == '__main__':
                                     values_hidden_dimension=values_hidden_dimension)
 
     # Seeing the result of a forward pass
-    print(multi_head.forward(query, key, value))
+    print(multi_head.forward(query, key, value).size())
