@@ -20,7 +20,7 @@ from torch import Tensor
 # values - tensor of shape (batch_size, sequence_length, number_of features_for_values)
 def scaled_dot_product_attention(queries: Tensor, keys: Tensor, values: Tensor) -> Tensor:
     matrix_mult_of_queries_and_keys = queries.bmm(keys.transpose(1, 2))
-    scalar_for_gradient_stability = queries.shape(-1) ** (1/2)
+    scalar_for_gradient_stability = queries.size(-1) ** (1/2)
     matrix_multiplication_adjusted_by_scalar = matrix_mult_of_queries_and_keys / scalar_for_gradient_stability
 
     softmax_scaled_matrix_multiplication = f.softmax(matrix_multiplication_adjusted_by_scalar, dim=-1)
@@ -31,16 +31,18 @@ def scaled_dot_product_attention(queries: Tensor, keys: Tensor, values: Tensor) 
 
 
 class SelfAttentionHead(nn.Module):
-    def __init__(self, input_dimension: int, queries_keys_dimension: int, values_dimension: int):
+    def __init__(self, embedding_dimension: int, queries_keys_hidden_dimension: int, values_hidden_dimension: int):
         super(SelfAttentionHead, self).__init__()
-        self.query_weights = nn.Linear(input_dimension, queries_keys_dimension)
-        self.key_weights = nn.Linear(input_dimension, queries_keys_dimension)
-        self.value_weights = nn.Linear(input_dimension, values_dimension)
+        self.query_weights = nn.Linear(embedding_dimension, queries_keys_hidden_dimension)
+        self.key_weights = nn.Linear(embedding_dimension, queries_keys_hidden_dimension)
+        self.value_weights = nn.Linear(embedding_dimension, values_hidden_dimension)
 
     def forward(self, query: Tensor, key: Tensor, value: Tensor) -> Tensor:
         weighted_query = self.query_weights(query)
         weighted_key = self.key_weights(key)
-        weighted_value = self.key_weights(value)
+        weighted_value = self.value_weights(value)
+
+        print(weighted_value.size())
 
         attention = scaled_dot_product_attention(weighted_query, weighted_key, weighted_value)
 
